@@ -76,11 +76,11 @@ def judge_stop(min_sample, mat1, mat2):
         return False
 
 
-def get_average(list):
-    sum = 0
-    for item in list:
-        sum += item
-    return sum/len(list)
+def get_average(li):
+    s = 0
+    for item in li:
+        s += item
+    return s / len(li)
 
 
 def make_decision(data, limit):
@@ -90,29 +90,36 @@ def make_decision(data, limit):
     chosen_f = {'name': 0, 'value': 0}
     f_names = ['A', 'B', 'C', 'D']  # 特征名字
     min_entropy = np.inf  # 最小信息熵
-    # 分类结果全是一样的，返回样本数
-    if len(set(data['Label'].tolist())) == 1:
-        chosen_f = {'name': 'None', 'value': cal_label_num(data)}
-        return chosen_f
+
     entropy = cal_df_entropy(data)  # 计算误差值
     for f_name in f_names:  # 遍历特征
         for f_v in data[f_name].tolist():  # 遍历特征所有值  #  平均值法：f_v_mean = Get_Average(f_vs)
             now_f = {'name': f_name, 'value': f_v}  # 当前分类标准
             s_mat, b_mat = cut_data(data, now_f)  # 分离数据集
-            if judge_stop(limit[1], s_mat, b_mat) is True:
-                continue
-            tem_entropy = cal_df_entropy(s_mat) + cal_df_entropy(b_mat)  # 计算以当下分割方式的信息熵
+            ps = len(s_mat)/(len(s_mat) + len(b_mat))
+            pb = len(b_mat)/(len(s_mat) + len(b_mat))
+            # if judge_stop(limit[1], s_mat, b_mat) is True:
+            #     continue
+            tem_entropy = ps * cal_df_entropy(s_mat) + pb * cal_df_entropy(b_mat)  # 计算以当下分割方式的信息熵
             if tem_entropy < min_entropy:
                 min_entropy = tem_entropy
                 chosen_f = now_f
+    # 分类结果全是一样的，返回样本数
+    if len(set(data['Label'].tolist())) == 1:
+        chosen_f = {'name': 'None', 'value': cal_label_num(data)}
+        # print(chosen_f, "same")
+        return chosen_f
     # 信息增益和阈值比较，IG过小则返回样本数
+    # assert entropy > min_entropy
     if (entropy - min_entropy) < limit[0]:
         chosen_f = {'name': 'None', 'value': cal_label_num(data)}
+        # print(chosen_f, "IG 过小")
         return chosen_f
     s_mat, b_mat = cut_data(data, chosen_f)
     # 分类数小于阈值，认为达到分类要求，返回样本数
     if judge_stop(limit[1], s_mat, b_mat) is True:
         chosen_f = {'name': 'None', 'value': cal_label_num(data)}
+        # print(chosen_f, "分类数过小")
         return chosen_f
     # 得到选择的特征名和特征值
     return chosen_f
