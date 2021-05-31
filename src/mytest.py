@@ -9,14 +9,44 @@ def predict(data):
     col_name = data.columns.tolist()
     col_name.insert(5, 'Predict')
     ndata = data.reindex(columns=col_name)
-
-    for i in range(len(ndata)):
-        if ndata.iloc[i, 2] <= 1.9:
-            ndata.iloc[i, 5] = 0
-        elif ndata.iloc[i, 3] <= 1.6:  # limit=(0.01,10) # and ndata.iloc[i, 2] <= 5.1:    # limit=(0.01,2)
-            ndata.iloc[i, 5] = 1
-        else:
-            ndata.iloc[i, 5] = 2
+    if lim == (0.01, 10):
+        for i in range(len(ndata)):
+            if ndata.iloc[i, 2] <= 1.9:
+                ndata.iloc[i, 5] = 0
+            elif ndata.iloc[i, 3] <= 1.6:
+                ndata.iloc[i, 5] = 1
+            else:
+                ndata.iloc[i, 5] = 2
+    if lim == (0.01, 5):
+        for i in range(len(ndata)):
+            if ndata.iloc[i, 2] <= 1.9:
+                ndata.iloc[i, 5] = 0
+            elif ndata.iloc[i, 3] <= 1.6 and ndata.iloc[i, 2] <= 4.9:
+                ndata.iloc[i, 5] = 1
+            else:
+                ndata.iloc[i, 5] = 2
+    if lim == (0.01, 1):
+        for i in range(len(ndata)):
+            if ndata.iloc[i, 2] <= 1.9:
+                ndata.iloc[i, 5] = 0
+            elif ndata.iloc[i, 3] <= 1.6:
+                if ndata.iloc[i, 2] <= 4.9:
+                    ndata.iloc[i, 5] = 1
+                else:
+                    if ndata.iloc[i, 0] > 6:
+                        ndata.iloc[i, 5] = 2
+                    elif ndata.iloc[i, 1] <= 2.2:
+                        ndata.iloc[i, 5] = 2
+                    else:
+                        ndata.iloc[i, 5] = 1
+            else:
+                if ndata.iloc[i, 2] <= 4.8:
+                    if ndata.iloc[i, 1] <= 3:
+                        ndata.iloc[i, 5] = 2
+                    else:
+                        ndata.iloc[i, 5] = 1
+                else:
+                    ndata.iloc[i, 5] = 2
     return ndata
 
 
@@ -30,6 +60,8 @@ def cal_acc(data):
 
 
 if __name__ == '__main__':
+    # assert rand == 2
+    # assert
     dataset = pd.read_csv("../data/iris.data")
     train_data, test_data = train_test_split(dataset, test_size=test_size, random_state=rand)
     print('Train accuracy:', cal_acc(train_data))
